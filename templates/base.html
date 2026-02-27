@@ -4,16 +4,62 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}{% endblock %} | Kiteresafety</title>
     <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+    <link rel="manifest" href="{% static 'manifest.json' %}">
 </head>
+
 <body>
     {% block content %}
     {% endblock %}
-  
+    <div id="installPopup" style="display:none;">
+        <p>Install KitereSafety for faster access and real-time alerts.</p>
+        <button id="installBtn">Install</button>
+        <button onclick="this.parentElement.style.display='none'">Dismiss</button>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+
+            let deferredPrompt;
+            const installPopup = document.getElementById("installPopup");
+            const installBtn = document.getElementById("installBtn");
+
+            window.addEventListener("beforeinstallprompt", (e) => {
+                e.preventDefault();
+                deferredPrompt = e;
+                installPopup.style.display = "block";
+            });
+
+            installBtn.addEventListener("click", async () => {
+                if (!deferredPrompt) return;
+
+                deferredPrompt.prompt();
+                await deferredPrompt.userChoice;
+
+                deferredPrompt = null;
+                installPopup.style.display = "none";
+            });
+
+            if (window.matchMedia("(display-mode: standalone)").matches) {
+                installPopup.style.display = "none";
+            }
+
+            if ("serviceWorker" in navigator) {
+                navigator.serviceWorker
+                    .register("{% static 'service-worker.js' %}")
+                    .then(() => console.log("Service Worker Registered"))
+                    .catch(err => console.log("SW registration failed", err));
+            }
+
+        });
+    </script>
+
     <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
 </body>
+
 </html>
