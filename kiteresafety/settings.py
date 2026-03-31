@@ -43,6 +43,11 @@ INSTALLED_APPS = [
     'core',
     'users',
     'rest_framework',
+    'reports',
+    'crispy_forms',
+    'crispy_bootstrap5',
+    'admin_dashboard',
+    'responders',
 ]
 
 MIDDLEWARE = [
@@ -137,10 +142,13 @@ STATICFILES_DIRS = [
 # Login/Logout URLs
 LOGIN_URL = 'login'
 # LOGIN_REDIRECT_URL = 'core:index'
-# LOGOUT_REDIRECT_URL = 'core:index'
+LOGOUT_REDIRECT_URL = 'index'
 
 # Custom user model
-# AUTH_USER_MODEL = 'users.User'
+AUTH_USER_MODEL = 'users.User'
+
+CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
+CRISPY_TEMPLATE_PACK = "bootstrap5"
 
 # Leaflet settings
 LEAFLET_CONFIG = {

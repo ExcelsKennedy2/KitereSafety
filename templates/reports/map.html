@@ -1,0 +1,222 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Live Incident Map - Kitere Safety System{% endblock %}
+
+{% block extra_css %}
+<style>
+    #full-map {
+        height: 70vh;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .legend {
+        background: white;
+        padding: 10px;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        position: absolute;
+        bottom: 20px;
+        right: 20px;
+        z-index: 1000;
+    }
+    .legend-item {
+        display: flex;
+        align-items: center;
+        margin-bottom: 5px;
+    }
+    .legend-color {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        margin-right: 8px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-md-3">
+            <div class="card shadow mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Filters</h5>
+                </div>
+                <div class="card-body">
+                    <form id="filter-form">
+                        <div class="mb-3">
+                            <label class="form-label">Status</label>
+                            <select class="form-select" id="status-filter">
+                                <option value="">All</option>
+                                <option value="pending">Pending</option>
+                                <option value="dispatched">Dispatched</option>
+                                <option value="in_progress">In Progress</option>
+                                <option value="resolved">Resolved</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Priority</label>
+                            <select class="form-select" id="priority-filter">
+                                <option value="">All</option>
+                                <option value="low">Low</option>
+                                <option value="medium">Medium</option>
+                                <option value="high">High</option>
+                                <option value="critical">Critical</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Category</label>
+                            <select class="form-select" id="category-filter">
+                                <option value="">All</option>
+                                {% for category in categories %}
+                                <option value="{{ category.id }}">{{ category.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <button type="button" class="btn btn-primary w-100" onclick="applyFilters()">
+                            Apply Filters
+                        </button>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="card shadow">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">Statistics</h5>
+                </div>
+                <div class="card-body">
+                    <div id="stats">
+                        <p>Total Incidents: <strong id="total-count">0</strong></p>
+                        <p>Active Incidents: <strong id="active-count">0</strong></p>
+                        <p>Critical: <strong id="critical-count">0</strong></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-9">
+            <div class="card shadow">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0"><i class="fas fa-map-marked-alt"></i> Live Incident Map</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div id="full-map"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="legend">
+    <h6>Incident Severity</h6>
+    <div class="legend-item">
+        <div class="legend-color" style="background: #dc3545;"></div>
+        <span>Critical</span>
+    </div>
+    <div class="legend-item">
+        <div class="legend-color" style="background: #fd7e14;"></div>
+        <span>High</span>
+    </div>
+    <div class="legend-item">
+        <div class="legend-color" style="background: #ffc107;"></div>
+        <span>Medium</span>
+    </div>
+    <div class="legend-item">
+        <div class="legend-color" style="background: #6c757d;"></div>
+        <span>Low</span>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    var map;
+    var markers = [];
+    
+    function getMarkerColor(priority) {
+        switch(priority) {
+            case 'critical': return '#dc3545';
+            case 'high': return '#fd7e14';
+            case 'medium': return '#ffc107';
+            default: return '#6c757d';
+        }
+    }
+    
+    function initMap() {
+        map = L.map('full-map').setView([-0.5, 34.5], 14);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+        
+        loadIncidents();
+    }
+    
+    function loadIncidents() {
+        var status = document.getElementById('status-filter').value;
+        var priority = document.getElementById('priority-filter').value;
+        var category = document.getElementById('category-filter').value;
+        
+        var url = `/reports/api/nearby-incidents/?lat=-0.5&lng=34.5`;
+        
+        $.get(url, function(data) {
+            // Clear existing markers
+            markers.forEach(marker => map.removeLayer(marker));
+            markers = [];
+            
+            var stats = {
+                total: 0,
+                active: 0,
+                critical: 0
+            };
+            
+            data.incidents.forEach(function(incident) {
+                // Apply filters
+                if (status && incident.status !== status) return;
+                if (priority && incident.priority !== priority) return;
+                
+                if (incident.latitude && incident.longitude) {
+                    stats.total++;
+                    if (incident.status !== 'resolved') stats.active++;
+                    if (incident.priority === 'critical') stats.critical++;
+                    
+                    var color = getMarkerColor(incident.priority);
+                    var marker = L.circleMarker([incident.latitude, incident.longitude], {
+                        color: color,
+                        radius: incident.priority === 'critical' ? 12 : 8,
+                        fillOpacity: 0.7,
+                        weight: 2
+                    }).addTo(map);
+                    
+                    marker.bindPopup(`
+                        <div style="min-width: 200px;">
+                            <h6 class="text-danger">${incident.title}</h6>
+                            <p><small>${incident.description}</small></p>
+                            <hr>
+                            <p><strong>Status:</strong> <span class="badge bg-${incident.status === 'resolved' ? 'success' : 'warning'}">${incident.status}</span></p>
+                            <p><strong>Priority:</strong> <span class="badge bg-${incident.priority === 'critical' ? 'danger' : 'secondary'}">${incident.priority}</span></p>
+                            <p><strong>Reported:</strong> ${incident.created_at}</p>
+                            ${incident.status !== 'resolved' ? `<a href="/reports/track/${incident.id}/" class="btn btn-sm btn-primary mt-2">Track Incident</a>` : ''}
+                        </div>
+                    `);
+                    
+                    markers.push(marker);
+                }
+            });
+            
+            // Update statistics
+            document.getElementById('total-count').textContent = stats.total;
+            document.getElementById('active-count').textContent = stats.active;
+            document.getElementById('critical-count').textContent = stats.critical;
+        });
+    }
+    
+    function applyFilters() {
+        loadIncidents();
+    }
+    
+    // Auto-refresh every 30 seconds
+    setInterval(loadIncidents, 30000);
+    
+    initMap();
+</script>
+{% endblock %}

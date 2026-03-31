@@ -1,0 +1,348 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block extra_css %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+    .dashboard-stat {
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+        transition: transform 0.3s;
+    }
+    .dashboard-stat:hover {
+        transform: translateY(-5px);
+    }
+    .chart-container {
+        position: relative;
+        height: 300px;
+        margin-bottom: 30px;
+    }
+    .hotspot-marker {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: red;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2><i class="fas fa-chart-line"></i> Admin Dashboard</h2>
+            <p>System analytics and incident management overview</p>
+        </div>
+    </div>
+    
+    <!-- Statistics Cards -->
+    <div class="row">
+        <div class="col-md-3">
+            <div class="dashboard-stat bg-primary text-white">
+                <i class="fas fa-exclamation-triangle fa-2x mb-3"></i>
+                <h3>{{ total_reports }}</h3>
+                <p>Total Reports</p>
+                <small>Last {{ days }} days</small>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="dashboard-stat bg-success text-white">
+                <i class="fas fa-check-circle fa-2x mb-3"></i>
+                <h3>{{ resolved_reports }}</h3>
+                <p>Resolved</p>
+                <small>{{ resolution_rate }}% resolution rate</small>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="dashboard-stat bg-warning text-dark">
+                <i class="fas fa-clock fa-2x mb-3"></i>
+                <h3>{{ pending_reports }}</h3>
+                <p>Active Incidents</p>
+                <small>Pending resolution</small>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="dashboard-stat bg-info text-white">
+                <i class="fas fa-truck-medical fa-2x mb-3"></i>
+                <h3>{{ active_responders }}</h3>
+                <p>Active Responders</p>
+                <small>On duty</small>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Response Time Card -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Average Response Time</h5>
+                </div>
+                <div class="card-body text-center">
+                    <h1 class="display-1 text-primary">{{ avg_response_time }}</h1>
+                    <p class="lead">hours average response time</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Charts Row -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0">Daily Incident Trends</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="trendsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0">Incidents by Category</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="categoryChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0">Priority Distribution</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="priorityChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0">Incident Status</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="statusChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Hourly Patterns -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0">Hourly Incident Patterns</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="hourlyChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Hotspots Map -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card shadow">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">Incident Hotspots Map</h5>
+                </div>
+                <div class="card-body">
+                    <div id="hotspot-map" style="height: 500px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Prediction Section -->
+    {% if prediction_data %}
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card shadow">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">Predictive Analytics (Next 7 Days)</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="predictionChart"></canvas>
+                    </div>
+                    <p class="text-muted mt-3"><small>* Based on historical data trends using linear regression</small></p>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Parse chart data from Django context
+    const chartData = {{ chart_data|safe }};
+    const hotspots = {{ hotspots|safe }};
+    const predictionData = {{ prediction_data|safe }};
+    
+    // Daily Trends Chart
+    new Chart(document.getElementById('trendsChart'), {
+        type: 'line',
+        data: {
+            labels: chartData.daily_trends.dates,
+            datasets: [{
+                label: 'Incidents per Day',
+                data: chartData.daily_trends.counts,
+                borderColor: 'rgb(75, 192, 192)',
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                tension: 0.1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+    
+    // Category Chart
+    new Chart(document.getElementById('categoryChart'), {
+        type: 'pie',
+        data: {
+            labels: chartData.category_data.labels,
+            datasets: [{
+                data: chartData.category_data.values,
+                backgroundColor: [
+                    '#dc3545', '#fd7e14', '#ffc107', '#198754', 
+                    '#0d6efd', '#6c757d', '#20c997', '#6f42c1'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+    
+    // Priority Chart
+    new Chart(document.getElementById('priorityChart'), {
+        type: 'bar',
+        data: {
+            labels: chartData.priority_data.labels,
+            datasets: [{
+                label: 'Incidents by Priority',
+                data: chartData.priority_data.values,
+                backgroundColor: ['#6c757d', '#ffc107', '#fd7e14', '#dc3545']
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+    
+    // Status Chart
+    new Chart(document.getElementById('statusChart'), {
+        type: 'doughnut',
+        data: {
+            labels: chartData.status_data.labels,
+            datasets: [{
+                data: chartData.status_data.values,
+                backgroundColor: ['#ffc107', '#0d6efd', '#17a2b8', '#198754', '#6c757d']
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+    
+    // Hourly Patterns Chart
+    new Chart(document.getElementById('hourlyChart'), {
+        type: 'line',
+        data: {
+            labels: chartData.hourly_patterns.hours,
+            datasets: [{
+                label: 'Incidents by Hour',
+                data: chartData.hourly_patterns.counts,
+                borderColor: 'rgb(220, 53, 69)',
+                backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+    
+    // Prediction Chart
+    if (predictionData) {
+        new Chart(document.getElementById('predictionChart'), {
+            type: 'line',
+            data: {
+                labels: predictionData.dates,
+                datasets: [{
+                    label: 'Predicted Incidents',
+                    data: predictionData.predictions,
+                    borderColor: 'rgb(23, 162, 184)',
+                    backgroundColor: 'rgba(23, 162, 184, 0.1)',
+                    borderDash: [5, 5]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false
+            }
+        });
+    }
+    
+    // Hotspots Map
+    var map = L.map('hotspot-map').setView([-0.5, 34.5], 14);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+    
+    // Add heatmap layer
+    var heatData = [];
+    hotspots.forEach(function(incident) {
+        if (incident.lat && incident.lng) {
+            heatData.push([incident.lat, incident.lng, 
+                incident.priority === 'critical' ? 10 : 
+                incident.priority === 'high' ? 5 : 1]);
+            
+            // Add marker for each incident
+            var color = incident.priority === 'critical' ? '#dc3545' :
+                       incident.priority === 'high' ? '#fd7e14' :
+                       incident.priority === 'medium' ? '#ffc107' : '#6c757d';
+            
+            L.circleMarker([incident.lat, incident.lng], {
+                radius: incident.priority === 'critical' ? 12 : 8,
+                color: color,
+                fillOpacity: 0.7
+            }).addTo(map).bindPopup(`
+                <strong>${incident.title}</strong><br>
+                Category: ${incident.category}<br>
+                Priority: ${incident.priority}<br>
+                Status: ${incident.status}
+            `);
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,152 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Report Incident{% endblock %}
+
+{% block extra_css %}
+<style>
+    #map {
+        height: 400px;
+        margin-top: 10px;
+        margin-bottom: 20px;
+        border-radius: 8px;
+    }
+    .emergency-banner {
+        background: linear-gradient(135deg, #dc3545, #ff6b6b);
+        color: white;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="emergency-banner text-center">
+                <h2><i class="fas fa-exclamation-triangle"></i> Emergency Report</h2>
+                <p>Please provide accurate information to help responders assist you quickly</p>
+            </div>
+            
+            <div class="card shadow">
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data" id="reportForm">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Category <span class="text-danger">*</span></label>
+                            {{ form.category }}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Title <span class="text-danger">*</span></label>
+                            {{ form.title }}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Description <span class="text-danger">*</span></label>
+                            {{ form.description }}
+                            <small class="text-muted">Provide as much detail as possible</small>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Location Name <span class="text-danger">*</span></label>
+                            {{ form.location_name }}
+                            <small class="text-muted">e.g., Near Kitere Market, Hostel XYZ, etc.</small>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Select Location on Map</label>
+                            <div id="map"></div>
+                            {{ form.latitude }}
+                            {{ form.longitude }}
+                            <small class="text-muted">Click on the map to mark your exact location</small>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Upload Photos (Optional)</label>
+                            <input type="file" name="images" class="form-control" multiple accept="image/*">
+                            <small class="text-muted">You can upload multiple images to help responders understand the situation</small>
+                        </div>
+                        
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-circle"></i>
+                            <strong>Note:</strong> Only report genuine emergencies. False reports may lead to legal action.
+                        </div>
+                        
+                        <button type="submit" class="btn btn-danger btn-lg w-100">
+                            <i class="fas fa-paper-plane"></i> Submit Report
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    var map;
+    var marker;
+    var latInput = document.getElementById('id_latitude');
+    var lngInput = document.getElementById('id_longitude');
+    
+    function initMap() {
+        // Default to Kitere area
+        var defaultLat = -0.5;
+        var defaultLng = 34.5;
+        
+        map = L.map('map').setView([defaultLat, defaultLng], 15);
+        
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+        
+        map.on('click', function(e) {
+            var lat = e.latlng.lat;
+            var lng = e.latlng.lng;
+            
+            if (marker) {
+                marker.setLatLng(e.latlng);
+            } else {
+                marker = L.marker(e.latlng).addTo(map);
+            }
+            
+            latInput.value = lat;
+            lngInput.value = lng;
+            
+            // Reverse geocoding to get location name
+            fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.display_name) {
+                        document.getElementById('id_location_name').value = data.display_name.split(',')[0];
+                    }
+                });
+        });
+        
+        // Try to get user's current location
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(function(position) {
+                var userLat = position.coords.latitude;
+                var userLng = position.coords.longitude;
+                map.setView([userLat, userLng], 16);
+                
+                if (marker) {
+                    marker.setLatLng([userLat, userLng]);
+                } else {
+                    marker = L.marker([userLat, userLng]).addTo(map);
+                }
+                
+                latInput.value = userLat;
+                lngInput.value = userLng;
+            });
+        }
+    }
+    
+    initMap();
+</script>
+{% endblock %}

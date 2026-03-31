@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+
+{% block title %}Responder Dashboard - Kitere Safety System{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2><i class="fas fa-truck-medical"></i> Responder Dashboard</h2>
+            <p>Welcome back, {{ user.username }}! Here are the incidents requiring your attention.</p>
+        </div>
+    </div>
+    
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Assigned Incidents</h5>
+                    <h2 class="display-4">{{ stats.total_assigned }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-warning text-dark">
+                <div class="card-body">
+                    <h5 class="card-title">Pending Responses</h5>
+                    <h2 class="display-4">{{ stats.pending_responses }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Resolved Today</h5>
+                    <h2 class="display-4">{{ stats.resolved_today }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <!-- Assigned Incidents -->
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">My Assigned Incidents</h5>
+                </div>
+                <div class="card-body">
+                    {% if assigned_incidents %}
+                        {% for incident in assigned_incidents %}
+                        <div class="card mb-3">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="card-title text-danger">{{ incident.title }}</h6>
+                                        <p class="card-text small">{{ incident.description|truncatechars:100 }}</p>
+                                        <div>
+                                            <span class="badge bg-{{ incident.priority }}">{{ incident.priority|upper }}</span>
+                                            <span class="badge bg-secondary">{{ incident.status|upper }}</span>
+                                            <span class="badge bg-info">{{ incident.category.name }}</span>
+                                        </div>
+                                        <p class="mt-2 mb-0"><small>Location: {{ incident.location_name }}</small></p>
+                                    </div>
+                                    <a href="{% url 'responder:view_incident' incident.id %}" class="btn btn-sm btn-primary">
+                                        View Details
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted text-center">No assigned incidents.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Available Incidents -->
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">Available Incidents</h5>
+                </div>
+                <div class="card-body">
+                    {% if available_incidents %}
+                        {% for incident in available_incidents %}
+                        <div class="card mb-3">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="card-title text-danger">{{ incident.title }}</h6>
+                                        <p class="card-text small">{{ incident.description|truncatechars:100 }}</p>
+                                        <div>
+                                            <span class="badge bg-{{ incident.priority }}">{{ incident.priority|upper }}</span>
+                                            <span class="badge bg-info">{{ incident.category.name }}</span>
+                                        </div>
+                                        <p class="mt-2 mb-0"><small>Location: {{ incident.location_name }}</small></p>
+                                        <p class="mb-0"><small>Reported: {{ incident.created_at|timesince }} ago</small></p>
+                                    </div>
+                                    <a href="{% url 'responder:claim_incident' incident.id %}" class="btn btn-sm btn-success" 
+                                       onclick="return confirm('Claim this incident?')">
+                                        Claim Incident
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted text-center">No pending incidents.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
