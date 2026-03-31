@@ -42,20 +42,9 @@ INSTALLED_APPS = [
     'pwa',
     'core',
     'users',
-    'django.contrib.gis',  # For geospatial features
-    'leaflet',  # For maps
+    'rest_framework',
 ]
 
-# MIDDLEWARE = [
-#     'django.middleware.security.SecurityMiddleware',
-#     'whitenoise.middleware.WhiteNoiseMiddleware',
-#     'django.contrib.sessions.middleware.SessionMiddleware',
-#     'django.middleware.common.CommonMiddleware',
-#     'django.middleware.csrf.CsrfViewMiddleware',
-#     'django.contrib.auth.middleware.AuthenticationMiddleware',
-#     'django.contrib.messages.middleware.MessageMiddleware',
-#     'django.middleware.clickjacking.XFrameOptionsMiddleware',   
-# ]
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
@@ -146,9 +135,12 @@ STATICFILES_DIRS = [
 # STATIC_ROOT = BASE_DIR / "staticfiles"  # for deployment
 
 # Login/Logout URLs
-LOGIN_URL = 'accounts:login'
-LOGIN_REDIRECT_URL = 'core:index'
-LOGOUT_REDIRECT_URL = 'core:index'
+LOGIN_URL = 'login'
+# LOGIN_REDIRECT_URL = 'core:index'
+# LOGOUT_REDIRECT_URL = 'core:index'
+
+# Custom user model
+# AUTH_USER_MODEL = 'users.User'
 
 # Leaflet settings
 LEAFLET_CONFIG = {
@@ -159,6 +151,17 @@ LEAFLET_CONFIG = {
     'RESET_VIEW': False,
     'SCALE': 'both',
     'ATTRIBUTION_PREFIX': 'Kitere Safety System',
+}
+
+# REST Framework settings
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
 }
 
 PWA_APP_NAME = 'Kiteresafety'
