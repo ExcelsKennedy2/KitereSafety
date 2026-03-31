@@ -42,6 +42,8 @@ INSTALLED_APPS = [
     'pwa',
     'core',
     'users',
+    'django.contrib.gis',  # For geospatial features
+    'leaflet',  # For maps
 ]
 
 # MIDDLEWARE = [
