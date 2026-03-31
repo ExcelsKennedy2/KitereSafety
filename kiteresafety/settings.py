@@ -143,6 +143,22 @@ STATICFILES_DIRS = [
 
 # STATIC_ROOT = BASE_DIR / "staticfiles"  # for deployment
 
+# Login/Logout URLs
+LOGIN_URL = 'accounts:login'
+LOGIN_REDIRECT_URL = 'core:index'
+LOGOUT_REDIRECT_URL = 'core:index'
+
+# Leaflet settings
+LEAFLET_CONFIG = {
+    'DEFAULT_CENTER': (-0.5, 34.5),  # Approximate center of Kitere
+    'DEFAULT_ZOOM': 15,
+    'MIN_ZOOM': 3,
+    'MAX_ZOOM': 18,
+    'RESET_VIEW': False,
+    'SCALE': 'both',
+    'ATTRIBUTION_PREFIX': 'Kitere Safety System',
+}
+
 PWA_APP_NAME = 'Kiteresafety'
 PWA_APP_DESCRIPTION = "Community safety and incident reporting platform"
 PWA_APP_THEME_COLOR = '#0d6efd'  # Bootstrap primary blue
