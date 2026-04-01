@@ -34,7 +34,7 @@ def responder_dashboard(request):
         ).count(),
     }
     
-    return render(request, 'responder/dashboard.html', {
+    return render(request, 'responders/responder.html', {
         'assigned_incidents': assigned_incidents,
         'available_incidents': available_incidents,
         'stats': stats,
