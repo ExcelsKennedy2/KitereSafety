@@ -17,7 +17,7 @@ def register_view(request):
             UserProfile.objects.create(user=user)
             login(request, user)
             messages.success(request, 'Registration successful! Welcome to Kitere Safety System.')
-            return redirect('report_incident')
+            return redirect('reports:report_incident')
         else:
             messages.error(request, 'Registration failed. Please correct the errors below.')
     else:
@@ -28,7 +28,7 @@ def register_view(request):
 def login_view(request):
     if request.user.is_authenticated:
         # return redirect('core:index')
-        return redirect('report_incident')
+        return redirect('reports:report_incident')
     
     if request.method == 'POST':
         form = CustomAuthenticationForm(request, data=request.POST)
@@ -47,7 +47,7 @@ def login_view(request):
                     return redirect('admin:index')
                 else:
                     # return redirect('core:index')
-                    return redirect('report_incident')
+                    return redirect('reports:report_incident')
         else:
             messages.error(request, 'Invalid username or password.')
     else:

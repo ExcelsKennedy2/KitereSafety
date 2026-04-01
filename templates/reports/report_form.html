@@ -35,25 +35,43 @@
                     <form method="post" enctype="multipart/form-data" id="reportForm">
                         {% csrf_token %}
                         
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                {{ form.non_field_errors }}
+                            </div>
+                        {% endif %}
+                        
                         <div class="mb-3">
                             <label class="form-label">Category <span class="text-danger">*</span></label>
                             {{ form.category }}
+                            {% if form.category.errors %}
+                                <div class="text-danger small mt-1">{{ form.category.errors }}</div>
+                            {% endif %}
                         </div>
                         
                         <div class="mb-3">
                             <label class="form-label">Title <span class="text-danger">*</span></label>
                             {{ form.title }}
+                            {% if form.title.errors %}
+                                <div class="text-danger small mt-1">{{ form.title.errors }}</div>
+                            {% endif %}
                         </div>
                         
                         <div class="mb-3">
                             <label class="form-label">Description <span class="text-danger">*</span></label>
                             {{ form.description }}
+                            {% if form.description.errors %}
+                                <div class="text-danger small mt-1">{{ form.description.errors }}</div>
+                            {% endif %}
                             <small class="text-muted">Provide as much detail as possible</small>
                         </div>
                         
                         <div class="mb-3">
                             <label class="form-label">Location Name <span class="text-danger">*</span></label>
                             {{ form.location_name }}
+                            {% if form.location_name.errors %}
+                                <div class="text-danger small mt-1">{{ form.location_name.errors }}</div>
+                            {% endif %}
                             <small class="text-muted">e.g., Near Kitere Market, Hostel XYZ, etc.</small>
                         </div>
                         
@@ -89,6 +107,7 @@
 
 {% block extra_js %}
 <script>
+document.addEventListener("DOMContentLoaded", function () {
     var map;
     var marker;
     var latInput = document.getElementById('id_latitude');
@@ -148,5 +167,6 @@
     }
     
     initMap();
+});
 </script>
 {% endblock %}

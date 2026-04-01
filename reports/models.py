@@ -43,8 +43,8 @@ class IncidentReport(models.Model):
     location_name = models.CharField(max_length=255)
     latitude = models.FloatField(null=True, blank=True)
     longitude = models.FloatField(null=True, blank=True)
-    latitude = models.DecimalField(max_digits=10, decimal_places=7, null=True, blank=True)
-    longitude = models.DecimalField(max_digits=10, decimal_places=7, null=True, blank=True)
+    # latitude = models.DecimalField(max_digits=10, decimal_places=7, null=True, blank=True)
+    # longitude = models.DecimalField(max_digits=10, decimal_places=7, null=True, blank=True)
     
     # Media
     images = models.JSONField(default=list)  # Store multiple image URLs

@@ -11,7 +11,7 @@ import json
 @login_required
 def report_incident(request):
     if request.method == 'POST':
-        form = IncidentReportForm(request.POST)
+        form = IncidentReportForm(request.POST, request.FILES)
         if form.is_valid():
             incident = form.save(commit=False)
             incident.reporter = request.user
@@ -32,6 +32,8 @@ def report_incident(request):
             
             messages.success(request, 'Incident reported successfully! Responders have been notified.')
             return redirect('reports:track_report', incident_id=incident.id)
+        else:
+            messages.error(request, 'Please fix the errors in the form before submitting.')
     else:
         form = IncidentReportForm()
     

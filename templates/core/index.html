@@ -18,7 +18,7 @@
                 <i class="fas fa-sign-in-alt"></i> Login
             </a>
         {% else %}
-            <a href="{% url 'report_incident' %}" class="btn btn-danger btn-lg">
+            <a href="{% url 'reports:report_incident' %}" class="btn btn-danger btn-lg">
                 <i class="fas fa-exclamation-triangle"></i> Report Emergency Now
             </a>
         {% endif %}
@@ -68,7 +68,7 @@
         <p class="text-center mb-4">View recent incidents and hotspots in your area</p>
         <div id="preview-map" style="height: 400px; border-radius: 10px;"></div>
         <div class="text-center mt-4">
-            <a href="{% url 'map_view' %}" class="btn btn-primary">View Full Map</a>
+            <a href="{% url 'reports:map_view' %}" class="btn btn-primary">View Full Map</a>
         </div>
     </div>
 </section>
@@ -114,7 +114,7 @@
     <div class="container text-center">
         <h2 class="mb-4">In an Emergency?</h2>
         <p class="lead mb-4">Don't wait - report now and get immediate assistance</p>
-        <a href="{% url 'report_incident' %}" class="btn btn-light btn-lg">
+        <a href="{% url 'reports:report_incident' %}" class="btn btn-light btn-lg">
             <i class="fas fa-exclamation-triangle"></i> Report Emergency
         </a>
     </div>
