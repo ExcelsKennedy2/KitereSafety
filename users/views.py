@@ -44,7 +44,7 @@ def login_view(request):
                 if user.role == 'responder':
                     return redirect('dashboard')
                 elif user.role == 'admin':
-                    return redirect('index')
+                    return redirect('admin')
                 else:
                     # return redirect('core:index')
                     return redirect('report_incident')

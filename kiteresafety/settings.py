@@ -150,6 +150,13 @@ AUTH_USER_MODEL = 'users.User'
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
 CRISPY_TEMPLATE_PACK = "bootstrap5"
 
+# settings.py
+
+# Admin site customization
+ADMIN_SITE_HEADER = "Kitere Safety Administration"
+ADMIN_SITE_TITLE = "Kitere Safety System"
+ADMIN_INDEX_TITLE = "Dashboard"
+
 # Leaflet settings
 LEAFLET_CONFIG = {
     'DEFAULT_CENTER': (-0.5, 34.5),  # Approximate center of Kitere
