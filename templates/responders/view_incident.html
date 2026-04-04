@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+
+{% block title %}Incident Details - {{ incident.title }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2><i class="fas fa-file-signature"></i> Incident Details</h2>
+            <p class="text-muted">Review the incident, view updates, and log your responder actions.</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">{{ incident.title }}</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Category:</strong> {{ incident.category.name }}</p>
+                    <p><strong>Status:</strong> <span class="badge bg-info text-uppercase">{{ incident.status }}</span></p>
+                    <p><strong>Priority:</strong> <span class="badge bg-danger text-uppercase">{{ incident.priority }}</span></p>
+                    <p><strong>Location:</strong> {{ incident.location_name }}</p>
+                    <p><strong>Description:</strong></p>
+                    <p>{{ incident.description }}</p>
+                    {% if incident.latitude and incident.longitude %}
+                        <p><strong>Coordinates:</strong> {{ incident.latitude }}, {{ incident.longitude }}</p>
+                    {% endif %}
+                    <p><strong>Reported by:</strong> {{ incident.reporter.username }}</p>
+                    <p><strong>Reported:</strong> {{ incident.created_at|date:'F j, Y, g:i a' }}</p>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0">Incident Updates</h5>
+                </div>
+                <div class="card-body">
+                    {% if updates %}
+                        <ul class="list-group list-group-flush">
+                            {% for update in updates %}
+                                <li class="list-group-item">
+                                    <p class="mb-1"><strong>{{ update.status|title }}</strong> &middot; {{ update.created_at|date:'M j, Y H:i' }}</p>
+                                    <p class="mb-0">{{ update.notes }}</p>
+                                    <small class="text-muted">By {{ update.updated_by.username }}</small>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-muted">No updates have been logged for this incident yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">Responder Actions</h5>
+                </div>
+                <div class="card-body">
+                    {% if actions %}
+                        <ul class="list-group list-group-flush">
+                            {% for action in actions %}
+                                <li class="list-group-item">
+                                    <p class="mb-1"><strong>{{ action.action_type|title }}</strong> &middot; {{ action.created_at|date:'M j, Y H:i' }}</p>
+                                    <p class="mb-0">{{ action.notes }}</p>
+                                    <small class="text-muted">By {{ action.responder.username }}</small>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-muted">No responder actions have been logged yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card mb-4">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">Update Incident Status</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="{% url 'responder:update_status' incident.id %}">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label">Status</label>
+                            <select name="status" class="form-select">
+                                <option value="pending" {% if incident.status == 'pending' %}selected{% endif %}>Pending</option>
+                                <option value="dispatched" {% if incident.status == 'dispatched' %}selected{% endif %}>Dispatched</option>
+                                <option value="in_progress" {% if incident.status == 'in_progress' %}selected{% endif %}>In Progress</option>
+                                <option value="resolved" {% if incident.status == 'resolved' %}selected{% endif %}>Resolved</option>
+                                <option value="closed" {% if incident.status == 'closed' %}selected{% endif %}>Closed</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Notes</label>
+                            <textarea name="notes" class="form-control" rows="4" placeholder="Add an update or responder note..."></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-danger w-100">Save Update</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

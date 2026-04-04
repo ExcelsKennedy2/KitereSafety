@@ -47,7 +47,7 @@ def view_incident(request, incident_id):
     updates = incident.updates.all()
     actions = incident.responder_actions.all()
     
-    return render(request, 'responder/view_incident.html', {
+    return render(request, 'responders/view_incident.html', {
         'incident': incident,
         'updates': updates,
         'actions': actions,
